@@ -2,17 +2,18 @@
 Name: TCP Fingerprint Scanner
 Description: Checks for special TCP properties
 """
-from scapy.all import *
 import random
 
-PASS_STR    = "PASS"
-FAIL_STR    = "FAIL"
-N_A_STR     = "N/A"
+from scapy.all import IP, TCP, sr1
 
-COMMON_OPEN_PORTS       = [443, 80, 21, 23, 22, 25, 465, 587, 161, 53]
+PASS_STR = "PASS"
+FAIL_STR = "FAIL"
+N_A_STR = "N/A"
 
-class Tester():
+COMMON_OPEN_PORTS = [443, 80, 21, 23, 22, 25, 465, 587, 161, 53]
+DEFAULT_MSS = 1280
 
+class Tester:
     name = "UNIQUE TCP"
 
     def __init__(self, iface, timeout, port):
@@ -34,9 +35,10 @@ class Tester():
         for port in use_ports:
             # send SYN
             sport = random.randint(1024, 65535)
-            syn = IP(dst=address)/TCP(sport=sport, dport=port, flags='S', seq=1000, options=[("WScale", 123)])
+            syn = IP(dst=address) / TCP(sport=sport, dport=port, flags='S', seq=1000,
+                                        options=[("WScale", 123), ("MSS", DEFAULT_MSS)])
             synack = sr1(syn, timeout=self.timeout)
-            
+
             # no response
             if not synack:
                 continue
@@ -45,18 +47,22 @@ class Tester():
             if not synack.haslayer("TCP") or synack["TCP"].flags != "SA":
                 continue
 
-            # check parameters
-            if synack["TCP"].window not in [4380, 8760]:
-                return FAIL_STR
-
+            matched_mss, matched_wscale = False, False
             for option in synack["TCP"].options:
-                if option[0] != 'WScale':
-                    continue
-                # check if we got zero
-                if option[1] == 0:
-                    return PASS_STR
-                else:
-                    break
+                if option[0] == 'WScale':
+                    # check if we got zero
+                    if option[1] == 0:
+                        matched_wscale = True
+                    else:
+                        break
+                if option[0] == 'MSS':
+                    # check if we got zero
+                    if option[1] == DEFAULT_MSS:
+                        matched_mss = True
+                    else:
+                        break
+            if matched_mss and matched_wscale:
+                return PASS_STR
             return FAIL_STR
-        
+
         return N_A_STR
