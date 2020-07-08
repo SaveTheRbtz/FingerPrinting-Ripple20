@@ -44,7 +44,7 @@ class Tester:
                 continue
 
             # check if we really got a SYN-ACK
-            if not synack.haslayer("TCP") or synack["TCP"].flags != "SA":
+            if not synack.haslayer("TCP") or synack.sprintf('%TCP.flags%') != "SA":
                 continue
 
             matched_mss, matched_wscale = False, False
