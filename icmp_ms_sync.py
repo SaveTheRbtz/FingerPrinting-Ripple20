@@ -9,8 +9,8 @@ PASS_STR = "PASS"
 FAIL_STR = "FAIL"
 N_A_STR = "N/A"
 
-ICMP_MS_SYNC_REQ_TYPE = 0xa5
-ICMP_MS_SYNC_RSP_TYPE = 0xa6
+ICMP_MS_SYNC_REQ_TYPE = 0xA5
+ICMP_MS_SYNC_RSP_TYPE = 0xA6
 
 
 def keep_icmp_handler(func):
@@ -27,7 +27,7 @@ def keep_icmp_handler(func):
     return wrapper
 
 
-class Tester():
+class Tester:
     name = "ICMP_MS_SYNC"
 
     def __init__(self, iface, timeout, port=None):
@@ -56,8 +56,10 @@ class Tester():
 def _icmp_answers(self, other):
     if not isinstance(other, ICMP):
         return 0
-    if (self[ICMP].type == ICMP_MS_SYNC_RSP_TYPE
-            and other[ICMP].type == ICMP_MS_SYNC_REQ_TYPE):  # allow also destination unreachable + invalid protocol
+    if (
+        self[ICMP].type == ICMP_MS_SYNC_RSP_TYPE
+        and other[ICMP].type == ICMP_MS_SYNC_REQ_TYPE
+    ):  # allow also destination unreachable + invalid protocol
         return 1
     return 0
 
@@ -65,14 +67,12 @@ def _icmp_answers(self, other):
 def _icmperror_answers(self, other):
     if not isinstance(other, ICMP):
         return 0
-    if bytes(self)[0] == 0xa5:  # our special code
+    if bytes(self)[0] == 0xA5:  # our special code
         return 1
-    if not ((self.type == other.type) and
-            (self.code == other.code)):
+    if not ((self.type == other.type) and (self.code == other.code)):
         return 0
     if self.code in [0, 8, 13, 14, 17, 18]:
-        if (self.id == other.id and
-                self.seq == other.seq):
+        if self.id == other.id and self.seq == other.seq:
             return 1
         else:
             return 0

@@ -14,6 +14,7 @@ COMMON_OPEN_PORTS = [443, 80, 21, 23, 22, 25, 465, 587, 161, 53]
 DEFAULT_MSS = 69
 HARDCODED_HP_MSS = 1350
 
+
 class Tester:
     name = "UNIQUE TCP"
 
@@ -36,14 +37,19 @@ class Tester:
         for port in use_ports:
             # send SYN
             sport = random.randint(1024, 65535)
-            syn = IP(dst=address) / TCP(sport=sport, dport=port, flags="S", seq=1000,
-                                        options=[
-                                            ("WScale", 7),
-                                            ("MSS", DEFAULT_MSS),
-                                            ("SAckOK", b""),
-                                            ("Timestamp", (1, 1)),
-                                            ("Mood", b"whitehat")
-                                        ])
+            syn = IP(dst=address) / TCP(
+                sport=sport,
+                dport=port,
+                flags="S",
+                seq=1000,
+                options=[
+                    ("WScale", 7),
+                    ("MSS", DEFAULT_MSS),
+                    ("SAckOK", b""),
+                    ("Timestamp", (1, 1)),
+                    ("Mood", b"whitehat"),
+                ],
+            )
             synack = sr1(syn, timeout=self.timeout)
 
             # no response

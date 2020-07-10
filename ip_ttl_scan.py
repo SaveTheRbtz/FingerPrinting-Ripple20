@@ -58,7 +58,10 @@ class Tester:
             return FAIL_STR
 
         # COMPARE!
-        if tcp_rst_ttl + ttl_distance == EXPECTED_REGULAR_TTL and ttl_distance < MAX_IP_HOPS:
+        if (
+            tcp_rst_ttl + ttl_distance == EXPECTED_REGULAR_TTL
+            and ttl_distance < MAX_IP_HOPS
+        ):
             return PASS_STR
         else:
             return FAIL_STR
