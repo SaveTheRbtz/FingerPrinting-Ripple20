@@ -11,7 +11,8 @@ FAIL_STR = "FAIL"
 N_A_STR = "N/A"
 
 COMMON_OPEN_PORTS = [443, 80, 21, 23, 22, 25, 465, 587, 161, 53]
-DEFAULT_MSS = 1280
+DEFAULT_MSS = 1281
+HARDCODED_HP_MSS = 1350
 
 class Tester:
     name = "UNIQUE TCP"
@@ -36,7 +37,12 @@ class Tester:
             # send SYN
             sport = random.randint(1024, 65535)
             syn = IP(dst=address) / TCP(sport=sport, dport=port, flags='S', seq=1000,
-                                        options=[("WScale", 123), ("MSS", DEFAULT_MSS)])
+                                        options=[
+                                            ("WScale", 7),
+                                            ("MSS", DEFAULT_MSS),
+                                            ("SAckOK", b""),
+                                            ("Timestamp", (1, 0)),
+                                        ])
             synack = sr1(syn, timeout=self.timeout)
 
             # no response
@@ -47,21 +53,22 @@ class Tester:
             if not synack.haslayer("TCP") or synack.sprintf('%TCP.flags%') != "SA":
                 continue
 
-            matched_mss, matched_wscale = False, False
+            matched_mss, matched_wscale, matched_ts = False, False, False
             for option in synack["TCP"].options:
-                if option[0] == 'WScale':
-                    # check if we got zero
-                    if option[1] == 0:
+                opt_name, opt_value = option[0], option[1]
+                if opt_name == 'WScale':
+                    if opt_value == 0:
                         matched_wscale = True
                     else:
                         break
-                if option[0] == 'MSS':
-                    # check if we got zero
-                    if option[1] == DEFAULT_MSS:
+                elif opt_name == 'MSS':
+                    if opt_value in {DEFAULT_MSS, HARDCODED_HP_MSS}:
                         matched_mss = True
                     else:
                         break
-            if matched_mss and matched_wscale:
+                elif opt_name == 'Timestamp':
+                    matched_ts = True
+            if matched_mss and matched_wscale and matched_ts:
                 return PASS_STR
             return FAIL_STR
 
