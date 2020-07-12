@@ -12,7 +12,8 @@ N_A_STR = "N/A"
 
 COMMON_OPEN_PORTS = [443, 80, 21, 23, 22, 25, 465, 587, 161, 53]
 DEFAULT_MSS = 69
-HARDCODED_HP_MSS = 1350
+# set to True in networks where routers/firewalls unconditionally modify MSS
+IGNORE_MSS = False
 
 
 class Tester:
@@ -69,7 +70,7 @@ class Tester:
                     else:
                         break
                 elif opt_name == "MSS":
-                    if opt_value in {DEFAULT_MSS, HARDCODED_HP_MSS}:
+                    if opt_value == DEFAULT_MSS or IGNORE_MSS:
                         matched_mss = True
                     else:
                         break
