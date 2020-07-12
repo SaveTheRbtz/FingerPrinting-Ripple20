@@ -47,8 +47,7 @@ class Tester:
                     ("WScale", 7),
                     ("MSS", DEFAULT_MSS),
                     ("SAckOK", b""),
-                    ("Timestamp", (1, 1)),
-                    ("Mood", b"whitehat"),
+                    ("Timestamp", (0, 0)),
                 ],
             )
             synack = sr1(syn, timeout=self.timeout)
